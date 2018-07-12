@@ -84,6 +84,7 @@ int main(int argc, char* argv[]) {
   {
     auto const name = linkElement->Get<std::string>("name");
     auto body = std::make_shared<chrono::ChBody>();
+    body->SetNameString(name);
 
     auto const [pos, rot] = get_pose(linkElement);
 
