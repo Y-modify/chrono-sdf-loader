@@ -168,20 +168,28 @@ int main(int argc, char* argv[]) {
   sdf::ElementPtr linkElement = modelElement->GetElement("link");
   while (linkElement)
   {
-    const auto linkName = linkElement->Get<std::string>("name");
-    auto v = linkElement->GetElement("pose");
-    if(!v) {
-      std::cerr << "No pose found" << std::endl;
-      return -3;
+    auto const name = linkElement->Get<std::string>("name");
+    auto body = chrono::ChBody();
+
+    auto const [pos, rot] = get_pose(linkElement);
+
+    body.SetPos(pos);
+    body.SetRot(rot);
+
+    std::cout << "**" <<name << "**" << std::endl;
+    {
+      if(!linkElement->HasElement("collision")) {
+        std::cerr << "No collision found" << std::endl;
+        return -3;
+      }
+      auto elem = linkElement->GetElement("collision");
+      auto const [pos, rot] = get_pose(elem);
+      auto const [hx, hy, hz] = get_box_size(elem);
+
+      auto collision = chrono::collision::ChCollisionModel();
+      collision.AddBox(hx, hy, hz, pos, rot);
+      body.SetCollisionModel(collision);
     }
-
-    auto const poseStr = v->GetValue()->GetAsString();
-    auto [pose, rot] = destruct_pose<double>(poseStr);
-
-    std::cout << poseStr << std::endl;
-    print_vec(pose, std::cout);
-    print_vec(rot, std::cout);
-    std::cout << std::endl;
 
     /* auto link = std::make_shared<ChBodyEasyBox>(0.5, 2, 0.5,  // x, y, z dimensions */
     /*     3000,         // density */
