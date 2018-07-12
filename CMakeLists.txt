@@ -11,6 +11,8 @@ find_package(Chrono
              COMPONENTS Irrlicht
              CONFIG)
 find_package(SDFormat REQUIRED)
+find_package(Boost REQUIRED)
+
 
 if (NOT Chrono_FOUND)
   message("Could not find Chrono or one of its required modules")
@@ -23,8 +25,9 @@ endif()
 
 
 include_directories(${CHRONO_INCLUDE_DIRS})
-
+include_directories(${Boost_INCLUDE_DIRS})
 include_directories(${SDFormat_INCLUDE_DIRS})
+
 link_directories(${SDFormat_LIBRARY_DIRS})
 
 add_executable(myexe my_example.cpp)
