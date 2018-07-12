@@ -163,14 +163,6 @@ int main(int argc, char* argv[]) {
       core::vector3df(0, 1, 0));  // to change the position of camera
   // application.AddLightWithShadow(vector3df(1,25,-5), vector3df(0,0,0), 35, 0.2,35, 55, 512, video::SColorf(1,1,1));
 
-  //======================================================================
-
-  // HERE YOU CAN POPULATE THE PHYSICAL SYSTEM WITH BODIES AND LINKS.
-  //
-  // An example: a pendulum.
-
-  // 1-Create a floor that is fixed (that is used also to represent the absolute reference)
-  // load and check sdf file
 
   // start parsing model
   const sdf::ElementPtr rootElement = sdfElement->Root();
@@ -188,12 +180,12 @@ int main(int argc, char* argv[]) {
   while (linkElement)
   {
     auto const name = linkElement->Get<std::string>("name");
-    auto body = chrono::ChBody();
+    auto body = std::make_shared<chrono::ChBody>();
 
     auto const [pos, rot] = get_pose(linkElement);
 
-    body.SetPos(pos);
-    body.SetRot(rot);
+    body->SetPos(pos);
+    body->SetRot(rot);
 
     std::cout << "**" <<name << "**" << std::endl;
     {
@@ -207,7 +199,7 @@ int main(int argc, char* argv[]) {
 
       auto collision = std::make_shared<chrono::collision::ChModelBullet>();
       collision->AddBox(hx, hy, hz, pos, rot);
-      body.SetCollisionModel(collision);
+      body->SetCollisionModel(collision);
     }
     {
       if(!linkElement->HasElement("inertial")) {
@@ -223,19 +215,19 @@ int main(int argc, char* argv[]) {
         }
         double mass;
         elem->GetElement("mass")->GetValue()->Get<double>(mass);
-        body.SetMass(mass);
+        body->SetMass(mass);
       }
 
       auto const [pos, rot] = get_pose(elem);
-      if(body.GetPos() != pos) {
+      if(body->GetPos() != pos) {
         throw std::runtime_error("The different pose between inertial and body is not supported");
       }
-      if(body.GetA() != rot) {
+      if(body->GetA() != rot) {
         throw std::runtime_error("The different rotation between inertial and body is not supported");
       }
 
       auto inertia = get_inertia(elem);
-      body.SetInertia(inertia);
+      body->SetInertia(inertia);
     }
     {
       if(!linkElement->HasElement("visual")) {
@@ -250,56 +242,12 @@ int main(int argc, char* argv[]) {
       auto const box = chrono::geometry::ChBox(pos, rot, chrono::ChVector<>(hx, hy, hz));
       auto const boxShape = std::make_shared<chrono::ChBoxShape>(box);
 
-      body.AddAsset(boxShape);
+      body->AddAsset(boxShape);
     }
+
+    mphysicalSystem.Add(body);
     linkElement = linkElement->GetNextElement("link");
   }
-
-  auto floorBody = std::make_shared<ChBodyEasyBox>(10, 2, 10,  // x, y, z dimensions
-      false,      // no contact geoclientetry
-      true        // enable visualization geometry
-      );
-  floorBody->SetPos(ChVector<>(0, -2, 0));
-  floorBody->SetBodyFixed(true);
-
-  mphysicalSystem.Add(floorBody);
-
-  // 2-Create a pendulum
-
-  auto pendulumBody = std::make_shared<ChBodyEasyBox>(0.5, 2, 0.5,  // x, y, z dimensions
-      3000,         // density
-      false,        // no contact geometry
-      true          // enable visualization geometry
-      );
-  pendulumBody->SetPos(ChVector<>(0, 3, 0));
-  pendulumBody->SetPos_dt(ChVector<>(1, 0, 0));
-
-  mphysicalSystem.Add(pendulumBody);
-
-  // 3-Create a spherical constraint.
-  //   Here we'll use a ChLinkMateGeneric, but we could also use ChLinkLockSpherical
-
-  auto sphericalLink =
-    std::make_shared<ChLinkMateGeneric>(true, true, true, false, false, false);  // x,y,z,Rx,Ry,Rz constrains
-  ChFrame<> link_position_abs(ChVector<>(0, 4, 0));
-
-  sphericalLink->Initialize(pendulumBody,        // the 1st body to connect
-      floorBody,           // the 2nd body to connect
-      false,               // the two following frames are in absolute, not relative, coords.
-      link_position_abs,   // the link reference attached to 1st body
-      link_position_abs);  // the link reference attached to 2nd body
-
-  mphysicalSystem.Add(sphericalLink);
-
-  // Optionally, attach a RGB color asset to the floor, for better visualization
-  auto color = std::make_shared<ChColorAsset>();
-  color->SetColor(ChColor(0.2f, 0.25f, 0.25f));
-  floorBody->AddAsset(color);
-
-  // Optionally, attach a texture to the pendulum, for better visualization
-  auto texture = std::make_shared<ChTexture>();
-  texture->SetTextureFilename(GetChronoDataFile("cubetexture_bluwhite.png"));  // texture in ../data
-  pendulumBody->AddAsset(texture);
 
   //======================================================================
 
