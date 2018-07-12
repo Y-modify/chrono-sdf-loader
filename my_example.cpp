@@ -14,6 +14,7 @@
 #include "chrono/assets/ChTexture.h"
 #include "chrono/assets/ChColorAsset.h"
 #include "chrono_irrlicht/ChIrrApp.h"
+#include "chrono/collision/ChCModelBullet.h"
 
 template<typename T>
 std::vector<std::string> split(std::string const& src, T pat){
@@ -186,8 +187,8 @@ int main(int argc, char* argv[]) {
       auto const [pos, rot] = get_pose(elem);
       auto const [hx, hy, hz] = get_box_size(elem);
 
-      auto collision = chrono::collision::ChCollisionModel();
-      collision.AddBox(hx, hy, hz, pos, rot);
+      auto collision = std::make_shared<chrono::collision::ChModelBullet>();
+      collision->AddBox(hx, hy, hz, pos, rot);
       body.SetCollisionModel(collision);
     }
 
