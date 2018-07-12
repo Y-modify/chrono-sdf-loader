@@ -37,7 +37,7 @@ std::tuple<T, T, T> destruct_three(std::string const& value){
 }
 
 template<typename T=double>
-std::tuple<chrono::ChVector<T>, chrono::ChVector<T>> destruct_pose(std::string const& pose){
+std::tuple<chrono::ChVector<T>, chrono::ChMatrix33<T>> destruct_pose(std::string const& pose){
   chrono::ChVector<T> pos;
   chrono::ChVector<T> rot;
 
