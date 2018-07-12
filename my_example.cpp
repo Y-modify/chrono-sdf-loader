@@ -3,6 +3,8 @@
 #include <regex>
 
 #include <boost/range/adaptor/indexed.hpp>
+#include <boost/lexical_cast.hpp>
+#include <boost/algorithm/string.hpp>
 
 #include <sdf/sdf.hh>
 
@@ -16,23 +18,38 @@
 template<typename T>
 std::vector<std::string> split(std::string const& src, T pat){
   std::vector<std::string> result{};
-  std::regex reg{pat};
-  std::copy(
-      std::sregex_token_iterator{src.begin(), src.end(), reg, -1},
-      std::sregex_token_iterator{},
-      std::back_inserter(result)
-      );
+  boost::algorithm::split(result, src, boost::is_any_of(pat));
   return result;
 }
 
 template<typename T>
+std::tuple<T, T, T> destruct_three(std::string const& value){
+  auto const list = split(value, " ");
+  if(list.size() != 3) {
+    throw std::runtime_error("Not three pair but " + std::to_string(list.size()));
+  }
+
+  return std::make_tuple(
+      boost::lexical_cast<T>(list[0]),
+      boost::lexical_cast<T>(list[1]),
+      boost::lexical_cast<T>(list[2])
+    );
+}
+
+template<typename T=double>
 std::tuple<chrono::ChVector<T>, chrono::ChVector<T>> destruct_pose(std::string const& pose){
   chrono::ChVector<T> pos;
   chrono::ChVector<T> rot;
 
-  for(auto const& val : split(pose, " ") | boost::adaptors::indexed()) {
+  auto const list = split(pose, " ");
+  for(auto const& val : list | boost::adaptors::indexed()) {
     auto const idx = val.index();
-    double const dval = std::atof(val.value().c_str());
+    T dval;
+    try {
+      dval = boost::lexical_cast<T>(val.value());
+    } catch(boost::bad_lexical_cast&) {
+      throw std::runtime_error("Invalid value in pose: " + val.value());
+    }
     if(idx < 3) {
       pos[idx] = dval;
     } else {
