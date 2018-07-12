@@ -88,6 +88,22 @@ std::tuple<T, T, T> get_box_size(sdf::ElementPtr e) {
     return destruct_three<T>(str);
 }
 
+template<typename T=double>
+chrono::ChMatrix33<T> get_inertia(sdf::ElementPtr e) {
+    if(!e->HasElement("inertia")) {
+      throw std::runtime_error("No inertia found");
+    }
+    auto elem = e->GetElement("inertia");
+    T ixx, ixy, ixz, iyy, iyz, izz;
+    elem->GetElement("ixx")->GetValue()->Get<T>(ixx);
+    elem->GetElement("ixy")->GetValue()->Get<T>(ixy);
+    elem->GetElement("ixz")->GetValue()->Get<T>(ixz);
+    elem->GetElement("iyy")->GetValue()->Get<T>(iyy);
+    elem->GetElement("iyz")->GetValue()->Get<T>(iyz);
+    elem->GetElement("izz")->GetValue()->Get<T>(izz);
+    return chrono::ChMatrix33<T>(ixx, ixy, ixz, ixy, iyy, iyz, ixz, iyz, izz);
+}
+
 template<typename T>
 void print_vec(chrono::ChVector<T> vec, std::ostream& os) {
   os << '(' << vec.x() << ',' << vec.y() << ',' << vec.z() << ')';
@@ -191,7 +207,34 @@ int main(int argc, char* argv[]) {
       collision->AddBox(hx, hy, hz, pos, rot);
       body.SetCollisionModel(collision);
     }
+    {
+      if(!linkElement->HasElement("inertial")) {
+        std::cerr << "No inertial found" << std::endl;
+        return -3;
+      }
+      auto elem = linkElement->GetElement("inertial");
 
+      {
+        if(!elem->HasElement("mass")) {
+          std::cerr << "No mass found" << std::endl;
+          return -3;
+        }
+        double mass;
+        elem->GetElement("mass")->GetValue()->Get<double>(mass);
+        body.SetMass(mass);
+      }
+
+      auto const [pos, rot] = get_pose(elem);
+      if(body.GetPos() != pos) {
+        throw std::runtime_error("The different pose between inertial and body is not supported");
+      }
+      if(body.GetA() != rot) {
+        throw std::runtime_error("The different rotation between inertial and body is not supported");
+      }
+
+      auto inertia = get_inertia(elem);
+      body.SetInertia(inertia);
+    }
     /* auto link = std::make_shared<ChBodyEasyBox>(0.5, 2, 0.5,  // x, y, z dimensions */
     /*     3000,         // density */
     /*     false,        // no contact geometry */
