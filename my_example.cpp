@@ -57,7 +57,34 @@ std::tuple<chrono::ChVector<T>, chrono::ChVector<T>> destruct_pose(std::string c
     }
   }
 
-  return std::make_tuple(pos, rot);
+  return std::make_tuple(pos, chrono::ChMatrix33(rot));
+}
+
+template<typename T=double>
+decltype(auto) get_pose(sdf::ElementPtr e) {
+    auto elem = e->GetElement("pose");
+    if(!elem) {
+      throw std::runtime_error("No pose found");
+    }
+    auto const str = elem->GetValue()->GetAsString();
+    return destruct_pose<T>(str);
+}
+
+template<typename T=double>
+std::tuple<T, T, T> get_box_size(sdf::ElementPtr e) {
+    auto elem = e->GetElement("geometry");
+    if(!elem) {
+      throw std::runtime_error("No geometry found");
+    }
+    if(!elem->HasElement("box")) {
+      throw std::runtime_error("not a box");
+    }
+    auto size_e = elem->GetElement("box")->GetElement("size");
+    if(!size_e) {
+      throw std::runtime_error("No size in box");
+    }
+    auto const str = size_e->GetValue()->GetAsString();
+    return destruct_three<T>(str);
 }
 
 template<typename T>
