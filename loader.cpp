@@ -121,13 +121,9 @@ int main(int argc, char* argv[]) {
         body->SetMass(mass);
       }
 
-      auto const [pos, rot] = get_pose(elem);
-      if(body->GetPos() != pos) {
-        throw std::runtime_error("The different pose between inertial and body is not supported");
-      }
-      if(body->GetA() != rot) {
-        throw std::runtime_error("The different rotation between inertial and body is not supported");
-      }
+      // TODO: Convert inertial matrix based on <pose>
+      if(elem->HasElement("pose"))
+        std::cerr << "Ignoring <pose> in <inertial>" << std::endl;
 
       auto inertia = get_inertia(elem);
       body->SetInertia(inertia);
