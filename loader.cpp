@@ -132,19 +132,18 @@ int main(int argc, char* argv[]) {
     {
       if(!linkElement->HasElement("visual")) {
         std::cerr << "No visual found" << std::endl;
-        return -3;
+      } else {
+        auto elem = linkElement->GetElement("visual");
+
+        auto const [pos, rot] = get_pose(elem);
+        auto const [hx, hy, hz] = get_box_size(elem);
+
+        auto const box = chrono::geometry::ChBox(pos, rot, chrono::ChVector<>(hx, hy, hz));
+        auto const boxShape = std::make_shared<chrono::ChBoxShape>(box);
+
+        body->AddAsset(boxShape);
       }
-      auto elem = linkElement->GetElement("visual");
-
-      auto const [pos, rot] = get_pose(elem);
-      auto const [hx, hy, hz] = get_box_size(elem);
-
-      auto const box = chrono::geometry::ChBox(pos, rot, chrono::ChVector<>(hx, hy, hz));
-      auto const boxShape = std::make_shared<chrono::ChBoxShape>(box);
-
-      body->AddAsset(boxShape);
     }
-
     mphysicalSystem.Add(body);
     linkElement = linkElement->GetNextElement("link");
   }
