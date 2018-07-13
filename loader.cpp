@@ -11,7 +11,7 @@
 #include "chrono/assets/ChBoxShape.h"
 #include "chrono_irrlicht/ChIrrApp.h"
 #include "chrono/collision/ChCModelBullet.h"
-
+#include "chrono/physics/ChLinkMotorRotationAngle.h"
 #include "util.hpp"
 
 int main(int argc, char* argv[]) {
@@ -146,6 +146,29 @@ int main(int argc, char* argv[]) {
     }
     mphysicalSystem.Add(body);
     linkElement = linkElement->GetNextElement("link");
+  }
+
+  sdf::ElementPtr jointElement = modelElement->GetElement("joint");
+  while (jointElement)
+  {
+    const auto name = jointElement->Get<std::string>("name");
+
+    const auto parentName = jointElement->GetElement("parent")->Get<std::string>();
+    const auto parent = mphysicalSystem.SearchBody(parentName.c_str());
+
+    const auto childName = jointElement->GetElement("child")->Get<std::string>();
+    const auto child = mphysicalSystem.SearchBody(childName.c_str());
+
+    auto rotmotor = std::make_shared<ChLinkMotorRotationAngle>();
+    // Connect the rotor and the stator and add the motor to the system:
+    rotmotor->Initialize(child,                // body A (slave)
+        parent,               // body B (master)
+        ChFrame<>(parent->GetPos())  // motor frame, in abs. coords
+        );
+    rotmotor->SetNameString(name);
+    mphysicalSystem.Add(rotmotor);
+
+    jointElement = jointElement->GetNextElement("joint");
   }
 
   //======================================================================
