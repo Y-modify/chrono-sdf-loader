@@ -95,15 +95,15 @@ int main(int argc, char* argv[]) {
     {
       if(!linkElement->HasElement("collision")) {
         std::cerr << "No collision found" << std::endl;
-        return -3;
-      }
-      auto elem = linkElement->GetElement("collision");
-      auto const [pos, rot] = get_pose(elem);
-      auto const [hx, hy, hz] = get_box_size(elem);
+      } else {
+        auto elem = linkElement->GetElement("collision");
+        auto const [pos, rot] = get_pose(elem);
+        auto const [hx, hy, hz] = get_box_size(elem);
 
-      auto collision = std::make_shared<chrono::collision::ChModelBullet>();
-      collision->AddBox(hx, hy, hz, pos, rot);
-      body->SetCollisionModel(collision);
+        auto collision = std::make_shared<chrono::collision::ChModelBullet>();
+        collision->AddBox(hx, hy, hz, pos, rot);
+        body->SetCollisionModel(collision);
+      }
     }
     {
       if(!linkElement->HasElement("inertial")) {
