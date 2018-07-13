@@ -58,6 +58,17 @@ int main(int argc, char* argv[]) {
   ChIrrApp application(&mphysicalSystem, L"A simple project template", core::dimension2d<u32>(800, 600),
       false);  // screen dimensions
 
+  // Create a floor that is fixed (that is used also to represent the absolute reference)
+
+  auto floorBody = std::make_shared<ChBodyEasyBox>(20, 2, 20, 3000, true, true);
+  floorBody->SetPos(ChVector<>(0, -2, 0));
+  floorBody->SetBodyFixed(true);
+  mphysicalSystem.Add(floorBody);
+
+  auto mtexture = std::make_shared<ChTexture>();
+  mtexture->SetTextureFilename(GetChronoDataFile("blu.png"));
+  floorBody->AddAsset(mtexture);
+
   // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
   application.AddTypicalLogo();
   application.AddTypicalSky();
