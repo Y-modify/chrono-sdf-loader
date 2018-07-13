@@ -145,6 +145,15 @@ int main(int argc, char* argv[]) {
         std::cerr << "No visual found" << std::endl;
       } else {
         auto elem = linkElement->GetElement("visual");
+        {
+          if(!elem->HasElement("material")) {
+            std::cerr << "No material found" << std::endl;
+          } else {
+            std::string name;
+            elem->GetElement("material")->GetElement("script")->GetElement("name")->GetValue()->Get<std::string>(name);
+            body->AddAsset(get_color_by_name(name));
+          }
+        }
 
         auto const [pos, rot] = get_pose(elem);
         auto const [hx, hy, hz] = get_box_size(elem);

@@ -9,6 +9,16 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string.hpp>
 
+std::map<std::string, chrono::ChColor> presets = {
+  { "Gazebo/Orange", chrono::ChColor(1, 0.5088, 0.0468) },
+  { "Gazebo/Grey", chrono::ChColor(0.2, 0.2, 0.2) },
+  { "Gazebo/Black", chrono::ChColor(0, 0, 0) },
+};
+
+std::shared_ptr<chrono::ChColorAsset> get_color_by_name(std::string const& name) {
+  return std::make_shared<chrono::ChColorAsset>(presets[name]);
+}
+
 
 template<typename T>
 std::vector<std::string> split(std::string const& src, T pat){
