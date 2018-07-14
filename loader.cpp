@@ -117,7 +117,7 @@ int main(int argc, char* argv[]) {
         auto const [hx, hy, hz] = get_box_size(elem);
 
         body->GetCollisionModel()->ClearModel();
-        body->GetCollisionModel()->AddBox(hx, hy, hz, pos, rot);
+        body->GetCollisionModel()->AddBox(hx*0.5, hy*0.5, hz*0.5);
         body->GetCollisionModel()->BuildModel();
         body->SetCollide(true);
 
