@@ -12,6 +12,8 @@
 
 #include "sdf-loader/util.hpp"
 
+namespace sdfl
+{
 bool loadSDF(chrono::ChSystemNSC& mphysicalSystem, std::string const& sdfPath)
 {
   sdf::SDFPtr sdfElement(new sdf::SDF());
@@ -142,3 +144,5 @@ bool loadSDF(chrono::ChSystemNSC& mphysicalSystem, std::string const& sdfPath)
 
   return true;
 }
+
+};  // namespace sdfl

@@ -9,6 +9,8 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/range/adaptor/indexed.hpp>
 
+namespace sdfl
+{
 std::map<std::string, chrono::ChColor> presets = {
     {"Gazebo/Orange", chrono::ChColor(1, 0.5088, 0.0468)},
     {"Gazebo/Grey", chrono::ChColor(0.2, 0.2, 0.2)},
@@ -116,5 +118,7 @@ void print_vec(chrono::ChVector<T> vec, std::ostream& os)
 {
   os << '(' << vec.x() << ',' << vec.y() << ',' << vec.z() << ')';
 }
+
+};  // namespace sdfl
 
 #endif  // SDF_LOADER_UTIL_HPP
