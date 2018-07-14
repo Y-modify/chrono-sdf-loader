@@ -2,88 +2,32 @@
 
 #include <sdf/sdf.hh>
 
+#include "sdf-loader/sdf-loader.hpp"
+
 #include "chrono/physics/ChSystemNSC.h"
-#include "chrono/physics/ChBodyEasy.h"
-#include "chrono/physics/ChLinkMate.h"
-#include "chrono/assets/ChTexture.h"
 #include "chrono/assets/ChColorAsset.h"
 #include "chrono/geometry/ChBox.h"
 #include "chrono/assets/ChBoxShape.h"
-#include "chrono_irrlicht/ChIrrApp.h"
-#include "chrono/collision/ChCModelBullet.h"
 #include "chrono/physics/ChLinkMotorRotationAngle.h"
-#include "util.hpp"
 
-int main(int argc, char* argv[]) {
+#include "sdf-loader/util.hpp"
 
-  // check arguments
-  if (argc < 2)
-  {
-    std::cerr << "Usage: " << argv[0]
-      << " <sdf-path>" << std::endl;
-    return -1;
-  }
-  const std::string sdfPath(argv[1]);
+bool loadSDF(chrono::ChSystemNSC& mphysicalSystem, std::string const& sdfPath) {
 
   sdf::SDFPtr sdfElement(new sdf::SDF());
   sdf::init(sdfElement);
   if (!sdf::readFile(sdfPath, sdfElement))
   {
     std::cerr << sdfPath << " is not a valid SDF file!" << std::endl;
-    return -2;
+    return false;
   }
-
-  // Use the namespace of Chrono
-
-  using namespace chrono;
-  using namespace chrono::irrlicht;
-
-  // Use the main namespaces of Irrlicht
-
-  using namespace irr;
-  using namespace irr::core;
-  using namespace irr::scene;
-  using namespace irr::video;
-  using namespace irr::io;
-  using namespace irr::gui;
-
-  // Set path to Chrono data directory
-  SetChronoDataPath(CHRONO_DATA_DIR);
-
-  // Create a Chrono physical system
-  ChSystemNSC mphysicalSystem;
-
-  // Create the Irrlicht visualization (open the Irrlicht device,
-  // bind a simple user interface, etc. etc.)
-  ChIrrApp application(&mphysicalSystem, L"A simple project template", core::dimension2d<u32>(800, 600),
-      false);  // screen dimensions
-
-  // Create a floor that is fixed (that is used also to represent the absolute reference)
-
-  auto floorBody = std::make_shared<ChBodyEasyBox>(20, 2, 20, 3000, true, true);
-  floorBody->SetPos(ChVector<>(0, 0, 0));
-  floorBody->SetBodyFixed(true);
-  mphysicalSystem.Add(floorBody);
-
-  auto mtexture = std::make_shared<ChTexture>();
-  mtexture->SetTextureFilename(GetChronoDataFile("blu.png"));
-  floorBody->AddAsset(mtexture);
-
-  // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
-  application.AddTypicalLogo();
-  application.AddTypicalSky();
-  application.AddTypicalLights();
-  application.AddTypicalCamera(core::vector3df(2, 2, -5),
-      core::vector3df(0, 1, 0));  // to change the position of camera
-  // application.AddLightWithShadow(vector3df(1,25,-5), vector3df(0,0,0), 35, 0.2,35, 55, 512, video::SColorf(1,1,1));
-
 
   // start parsing model
   const sdf::ElementPtr rootElement = sdfElement->Root();
   if (!rootElement->HasElement("model"))
   {
     std::cerr << sdfPath << " is not a model SDF file!" << std::endl;
-    return -3;
+    return false;
   }
   const sdf::ElementPtr modelElement = rootElement->GetElement("model");
   const std::string modelName = modelElement->Get<std::string>("name");
@@ -126,14 +70,14 @@ int main(int argc, char* argv[]) {
     {
       if(!linkElement->HasElement("inertial")) {
         std::cerr << "No inertial found" << std::endl;
-        return -3;
+        return false;
       }
       auto elem = linkElement->GetElement("inertial");
 
       {
         if(!elem->HasElement("mass")) {
           std::cerr << "No mass found" << std::endl;
-          return -3;
+          return false;
         }
         double mass;
         elem->GetElement("mass")->GetValue()->Get<double>(mass);
@@ -185,45 +129,19 @@ int main(int argc, char* argv[]) {
     const auto childName = jointElement->GetElement("child")->Get<std::string>();
     const auto child = mphysicalSystem.SearchBody(childName.c_str());
 
-    auto rotmotor = std::make_shared<ChLinkMotorRotationAngle>();
+    auto rotmotor = std::make_shared<chrono::ChLinkMotorRotationAngle>();
     // Connect the rotor and the stator and add the motor to the system:
     rotmotor->Initialize(child,                // body A (slave)
         parent,               // body B (master)
-        ChFrame<>(parent->GetPos())  // motor frame, in abs. coords
+        chrono::ChFrame<>(parent->GetPos())  // motor frame, in abs. coords
         );
     rotmotor->SetNameString(name);
     mphysicalSystem.Add(rotmotor);
+    auto const f = std::make_shared<chrono::ChFunction_Const>(0);
+    rotmotor->SetAngleFunction(f);
 
     jointElement = jointElement->GetNextElement("joint");
   }
 
-  //======================================================================
-
-  // Use this function for adding a ChIrrNodeAsset to all items
-  // Otherwise use application.AssetBind(myitem); on a per-item basis.
-  application.AssetBindAll();
-
-  // Use this function for 'converting' assets into Irrlicht meshes
-  application.AssetUpdateAll();
-
-  // Adjust some settings:
-  application.SetTimestep(0.005);
-  application.SetTryRealtime(true);
-
-  //
-  // THE SOFT-REAL-TIME CYCLE
-  //
-
-  while (application.GetDevice()->run()) {
-    application.BeginScene();
-
-    application.DrawAll();
-
-    // This performs the integration timestep!
-    application.DoStep();
-
-    application.EndScene();
-  }
-
-  return 0;
+  return true;
 }

@@ -28,15 +28,11 @@ include_directories(${CHRONO_INCLUDE_DIRS})
 include_directories(${Boost_INCLUDE_DIRS})
 include_directories(${SDFormat_INCLUDE_DIRS})
 
+include_directories(${PROJECT_SOURCE_DIR}/include)
+
 link_directories(${SDFormat_LIBRARY_DIRS})
 
-add_executable(loader loader.cpp)
+add_subdirectory(lib/)
+add_subdirectory(include/)
 
-set_target_properties(loader PROPERTIES
-	    COMPILE_FLAGS "${CHRONO_CXX_FLAGS} ${EXTRA_COMPILE_FLAGS}"
-	    COMPILE_DEFINITIONS "CHRONO_DATA_DIR=\"${CHRONO_DATA_DIR}\""
-	    LINK_FLAGS "${CHRONO_LINKER_FLAGS}")
-
-target_link_libraries(loader ${CHRONO_LIBRARIES} ${SDFormat_LIBRARIES})
-
-set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR})
+add_subdirectory(examples/)
