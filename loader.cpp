@@ -116,9 +116,11 @@ int main(int argc, char* argv[]) {
         auto const [pos, rot] = get_pose(elem);
         auto const [hx, hy, hz] = get_box_size(elem);
 
-        auto collision = std::make_shared<chrono::collision::ChModelBullet>();
-        collision->AddBox(hx, hy, hz, pos, rot);
-        body->SetCollisionModel(collision);
+        body->GetCollisionModel()->ClearModel();
+        body->GetCollisionModel()->AddBox(hx, hy, hz, pos, rot);
+        body->GetCollisionModel()->BuildModel();
+        body->SetCollide(true);
+
       }
     }
     {
