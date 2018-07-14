@@ -61,7 +61,7 @@ int main(int argc, char* argv[]) {
   // Create a floor that is fixed (that is used also to represent the absolute reference)
 
   auto floorBody = std::make_shared<ChBodyEasyBox>(20, 2, 20, 3000, true, true);
-  floorBody->SetPos(ChVector<>(0, -2, 0));
+  floorBody->SetPos(ChVector<>(0, 0, 0));
   floorBody->SetBodyFixed(true);
   mphysicalSystem.Add(floorBody);
 
@@ -89,7 +89,7 @@ int main(int argc, char* argv[]) {
   const std::string modelName = modelElement->Get<std::string>("name");
   std::cout << "Found " << modelName << " model!" << std::endl;
 
-  chrono::ChFrame<> base(chrono::ChVector<>(0,0,0),
+  chrono::ChFrame<> base(chrono::ChVector<>(0,1.5,0),
                           -3.14/2,
                         chrono::ChVector<>(1,0,0));
 
