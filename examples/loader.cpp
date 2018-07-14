@@ -43,7 +43,7 @@ int main(int argc, char* argv[]) {
 
   // Create the Irrlicht visualization (open the Irrlicht device,
   // bind a simple user interface, etc. etc.)
-  ChIrrApp application(&mphysicalSystem, L"A simple project template", core::dimension2d<u32>(800, 600),
+  ChIrrApp application(&mphysicalSystem, L"sdf-loader example", core::dimension2d<u32>(800, 600),
       false);  // screen dimensions
 
   // Create a floor that is fixed (that is used also to represent the absolute reference)
