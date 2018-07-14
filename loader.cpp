@@ -2,6 +2,12 @@
 
 #include "sdf-loader.hpp"
 
+#include "chrono/physics/ChSystemNSC.h"
+#include "chrono/physics/ChBodyEasy.h"
+#include "chrono/assets/ChTexture.h"
+#include "chrono_irrlicht/ChIrrApp.h"
+
+
 int main(int argc, char* argv[]) {
 
   // check arguments

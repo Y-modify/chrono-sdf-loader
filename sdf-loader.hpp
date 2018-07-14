@@ -3,14 +3,9 @@
 #include <sdf/sdf.hh>
 
 #include "chrono/physics/ChSystemNSC.h"
-#include "chrono/physics/ChBodyEasy.h"
-#include "chrono/physics/ChLinkMate.h"
-#include "chrono/assets/ChTexture.h"
 #include "chrono/assets/ChColorAsset.h"
 #include "chrono/geometry/ChBox.h"
 #include "chrono/assets/ChBoxShape.h"
-#include "chrono_irrlicht/ChIrrApp.h"
-#include "chrono/collision/ChCModelBullet.h"
 #include "chrono/physics/ChLinkMotorRotationAngle.h"
 #include "util.hpp"
 
