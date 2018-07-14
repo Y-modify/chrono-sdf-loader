@@ -59,7 +59,10 @@ int main(int argc, char* argv[]) {
   // application.AddLightWithShadow(vector3df(1,25,-5), vector3df(0,0,0), 35, 0.2,35, 55, 512, video::SColorf(1,1,1));
 
 
-  loadSDF(mphysicalSystem, sdfPath);
+  if(!loadSDF(mphysicalSystem, sdfPath)) {
+    std::cerr << "Failed to load sdf." << std::endl;
+    return -1;
+  }
   //======================================================================
 
   // Use this function for adding a ChIrrNodeAsset to all items
