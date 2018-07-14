@@ -2,14 +2,15 @@
 
 #include <sdf/sdf.hh>
 
-#include "sdf-loader.hpp"
+#include "sdf-loader/sdf-loader.hpp"
 
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/assets/ChColorAsset.h"
 #include "chrono/geometry/ChBox.h"
 #include "chrono/assets/ChBoxShape.h"
 #include "chrono/physics/ChLinkMotorRotationAngle.h"
-#include "util.hpp"
+
+#include "sdf-loader/util.hpp"
 
 bool loadSDF(chrono::ChSystemNSC& mphysicalSystem, std::string const& sdfPath) {
 

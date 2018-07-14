@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include "sdf-loader.hpp"
+#include "sdf-loader/sdf-loader.hpp"
 
 #include "chrono/ChConfig.h"
 #include "chrono/physics/ChSystemNSC.h"
