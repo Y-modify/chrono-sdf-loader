@@ -32,6 +32,8 @@ include_directories(${PROJECT_SOURCE_DIR}/include)
 
 link_directories(${SDFormat_LIBRARY_DIRS})
 
+include(cmake/clang-format.cmake)
+
 add_subdirectory(lib/)
 add_subdirectory(include/)
 
