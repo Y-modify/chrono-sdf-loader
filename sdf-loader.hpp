@@ -19,10 +19,6 @@ bool loadSDF(chrono::ChSystemNSC& mphysicalSystem, std::string const& sdfPath) {
     return false;
   }
 
-  // Use the namespace of Chrono
-
-  using namespace chrono;
-
   // start parsing model
   const sdf::ElementPtr rootElement = sdfElement->Root();
   if (!rootElement->HasElement("model"))
@@ -130,15 +126,15 @@ bool loadSDF(chrono::ChSystemNSC& mphysicalSystem, std::string const& sdfPath) {
     const auto childName = jointElement->GetElement("child")->Get<std::string>();
     const auto child = mphysicalSystem.SearchBody(childName.c_str());
 
-    auto rotmotor = std::make_shared<ChLinkMotorRotationAngle>();
+    auto rotmotor = std::make_shared<chrono::ChLinkMotorRotationAngle>();
     // Connect the rotor and the stator and add the motor to the system:
     rotmotor->Initialize(child,                // body A (slave)
         parent,               // body B (master)
-        ChFrame<>(parent->GetPos())  // motor frame, in abs. coords
+        chrono::ChFrame<>(parent->GetPos())  // motor frame, in abs. coords
         );
     rotmotor->SetNameString(name);
     mphysicalSystem.Add(rotmotor);
-    auto const f = std::make_shared<ChFunction_Const>(0);
+    auto const f = std::make_shared<chrono::ChFunction_Const>(0);
     rotmotor->SetAngleFunction(f);
 
     jointElement = jointElement->GetNextElement("joint");
