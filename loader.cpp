@@ -89,6 +89,10 @@ int main(int argc, char* argv[]) {
   const std::string modelName = modelElement->Get<std::string>("name");
   std::cout << "Found " << modelName << " model!" << std::endl;
 
+  chrono::ChFrame<> base(chrono::ChVector<>(0,0,0),
+                          -3.14/2,
+                        chrono::ChVector<>(1,0,0));
+
   // parse model links
   sdf::ElementPtr linkElement = modelElement->GetElement("link");
   while (linkElement)
@@ -97,10 +101,11 @@ int main(int argc, char* argv[]) {
     auto body = std::make_shared<chrono::ChBody>();
     body->SetNameString(name);
 
-    auto const [pos, rot] = get_pose(linkElement);
+    auto const [pos, rot] = get_pose(linkElement); // 相対座標系 原点: base_link
+    auto const absCoord = base.GetA() * pos + base.GetPos(); // 絶対座標系
 
-    body->SetPos(pos);
-    body->SetRot(rot);
+    body->SetPos(absCoord);
+    body->SetRot(base.GetA());
 
     std::cout << "**" <<name << "**" << std::endl;
     {
@@ -111,9 +116,6 @@ int main(int argc, char* argv[]) {
         auto const [pos, rot] = get_pose(elem);
         auto const [hx, hy, hz] = get_box_size(elem);
 
-        // TODO: Find more natural way
-        if(pos[2])
-          pos[2] += hz;
         auto collision = std::make_shared<chrono::collision::ChModelBullet>();
         collision->AddBox(hx, hy, hz, pos, rot);
         body->SetCollisionModel(collision);
@@ -158,15 +160,11 @@ int main(int argc, char* argv[]) {
           }
         }
 
-        auto const [pos, rot] = get_pose(elem);
+        auto [pos, rot] = get_pose(elem); // 相対座標系 原点: body->GetPos()
         auto const [hx, hy, hz] = get_box_size(elem);
 
-        // TODO: Find more natural way
-        if(pos[2])
-          pos[2] += hz;
         auto const box = chrono::geometry::ChBox(pos, rot, chrono::ChVector<>(hx, hy, hz));
         auto const boxShape = std::make_shared<chrono::ChBoxShape>(box);
-
         body->AddAsset(boxShape);
       }
     }
