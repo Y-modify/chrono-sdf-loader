@@ -8,3 +8,5 @@ set_target_properties(sdf-loader PROPERTIES
 	    LINK_FLAGS "${CHRONO_LINKER_FLAGS}")
 
 target_link_libraries(sdf-loader ${CHRONO_LIBRARIES} ${SDFormat_LIBRARIES})
+
+install(TARGETS sdf-loader DESTINATION lib)
