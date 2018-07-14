@@ -17,6 +17,7 @@ std::map<std::string, chrono::ChColor> presets = {
     {"Gazebo/Black", chrono::ChColor(0, 0, 0)},
 };
 
+std::shared_ptr<chrono::ChColorAsset> get_color_by_name(std::string const& name);
 std::shared_ptr<chrono::ChColorAsset> get_color_by_name(std::string const& name)
 {
   return std::make_shared<chrono::ChColorAsset>(presets[name]);
@@ -119,6 +120,6 @@ void print_vec(chrono::ChVector<T> vec, std::ostream& os)
   os << '(' << vec.x() << ',' << vec.y() << ',' << vec.z() << ')';
 }
 
-};  // namespace sdfl
+}  // namespace sdfl
 
 #endif  // SDF_LOADER_UTIL_HPP

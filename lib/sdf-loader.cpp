@@ -42,8 +42,8 @@ bool loadSDF(chrono::ChSystemNSC& mphysicalSystem, std::string const& sdfPath)
     auto body       = std::make_shared<chrono::ChBody>();
     body->SetNameString(name);
 
-    auto const [pos, rot] = get_pose(linkElement);              // 相対座標系 原点: base_link
-    auto const absCoord   = base.GetA() * pos + base.GetPos();  // 絶対座標系
+    auto const [bpos, brot] = get_pose(linkElement);  // 相対座標系 原点: base_link
+    auto const absCoord     = base.GetA() * bpos + base.GetPos();  // 絶対座標系
 
     body->SetPos(absCoord);
     body->SetRot(base.GetA());
@@ -96,13 +96,13 @@ bool loadSDF(chrono::ChSystemNSC& mphysicalSystem, std::string const& sdfPath)
           if (!elem->HasElement("material")) {
             std::cerr << "No material found" << std::endl;
           } else {
-            std::string name;
+            std::string colorName;
             elem->GetElement("material")
                 ->GetElement("script")
                 ->GetElement("name")
                 ->GetValue()
-                ->Get<std::string>(name);
-            body->AddAsset(get_color_by_name(name));
+                ->Get<std::string>(colorName);
+            body->AddAsset(get_color_by_name(colorName));
           }
         }
 
@@ -145,4 +145,4 @@ bool loadSDF(chrono::ChSystemNSC& mphysicalSystem, std::string const& sdfPath)
   return true;
 }
 
-};  // namespace sdfl
+}  // namespace sdfl
