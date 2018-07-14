@@ -1,18 +1,6 @@
 #include <iostream>
 
-#include <sdf/sdf.hh>
-
-#include "chrono/physics/ChSystemNSC.h"
-#include "chrono/physics/ChBodyEasy.h"
-#include "chrono/physics/ChLinkMate.h"
-#include "chrono/assets/ChTexture.h"
-#include "chrono/assets/ChColorAsset.h"
-#include "chrono/geometry/ChBox.h"
-#include "chrono/assets/ChBoxShape.h"
-#include "chrono_irrlicht/ChIrrApp.h"
-#include "chrono/collision/ChCModelBullet.h"
-#include "chrono/physics/ChLinkMotorRotationAngle.h"
-#include "util.hpp"
+#include "sdf-loader.hpp"
 
 int main(int argc, char* argv[]) {
 
@@ -23,15 +11,8 @@ int main(int argc, char* argv[]) {
       << " <sdf-path>" << std::endl;
     return -1;
   }
-  const std::string sdfPath(argv[1]);
 
-  sdf::SDFPtr sdfElement(new sdf::SDF());
-  sdf::init(sdfElement);
-  if (!sdf::readFile(sdfPath, sdfElement))
-  {
-    std::cerr << sdfPath << " is not a valid SDF file!" << std::endl;
-    return -2;
-  }
+  const std::string sdfPath(argv[1]);
 
   // Use the namespace of Chrono
 
@@ -78,125 +59,7 @@ int main(int argc, char* argv[]) {
   // application.AddLightWithShadow(vector3df(1,25,-5), vector3df(0,0,0), 35, 0.2,35, 55, 512, video::SColorf(1,1,1));
 
 
-  // start parsing model
-  const sdf::ElementPtr rootElement = sdfElement->Root();
-  if (!rootElement->HasElement("model"))
-  {
-    std::cerr << sdfPath << " is not a model SDF file!" << std::endl;
-    return -3;
-  }
-  const sdf::ElementPtr modelElement = rootElement->GetElement("model");
-  const std::string modelName = modelElement->Get<std::string>("name");
-  std::cout << "Found " << modelName << " model!" << std::endl;
-
-  chrono::ChFrame<> base(chrono::ChVector<>(0,1.5,0),
-                          -3.14/2,
-                        chrono::ChVector<>(1,0,0));
-
-  // parse model links
-  sdf::ElementPtr linkElement = modelElement->GetElement("link");
-  while (linkElement)
-  {
-    auto const name = linkElement->Get<std::string>("name");
-    auto body = std::make_shared<chrono::ChBody>();
-    body->SetNameString(name);
-
-    auto const [pos, rot] = get_pose(linkElement); // 相対座標系 原点: base_link
-    auto const absCoord = base.GetA() * pos + base.GetPos(); // 絶対座標系
-
-    body->SetPos(absCoord);
-    body->SetRot(base.GetA());
-
-    std::cout << "**" <<name << "**" << std::endl;
-    {
-      if(!linkElement->HasElement("collision")) {
-        std::cerr << "No collision found" << std::endl;
-      } else {
-        auto elem = linkElement->GetElement("collision");
-        auto const [pos, rot] = get_pose(elem);
-        auto const [hx, hy, hz] = get_box_size(elem);
-
-        body->GetCollisionModel()->ClearModel();
-        body->GetCollisionModel()->AddBox(hx*0.5, hy*0.5, hz*0.5);
-        body->GetCollisionModel()->BuildModel();
-        body->SetCollide(true);
-
-      }
-    }
-    {
-      if(!linkElement->HasElement("inertial")) {
-        std::cerr << "No inertial found" << std::endl;
-        return -3;
-      }
-      auto elem = linkElement->GetElement("inertial");
-
-      {
-        if(!elem->HasElement("mass")) {
-          std::cerr << "No mass found" << std::endl;
-          return -3;
-        }
-        double mass;
-        elem->GetElement("mass")->GetValue()->Get<double>(mass);
-        body->SetMass(mass);
-      }
-
-      // TODO: Convert inertial matrix based on <pose>
-      if(elem->HasElement("pose"))
-        std::cerr << "Ignoring <pose> in <inertial>" << std::endl;
-
-      auto inertia = get_inertia(elem);
-      body->SetInertia(inertia);
-    }
-    {
-      if(!linkElement->HasElement("visual")) {
-        std::cerr << "No visual found" << std::endl;
-      } else {
-        auto elem = linkElement->GetElement("visual");
-        {
-          if(!elem->HasElement("material")) {
-            std::cerr << "No material found" << std::endl;
-          } else {
-            std::string name;
-            elem->GetElement("material")->GetElement("script")->GetElement("name")->GetValue()->Get<std::string>(name);
-            body->AddAsset(get_color_by_name(name));
-          }
-        }
-
-        auto [pos, rot] = get_pose(elem); // 相対座標系 原点: body->GetPos()
-        auto const [hx, hy, hz] = get_box_size(elem);
-
-        auto const box = chrono::geometry::ChBox(pos, rot, chrono::ChVector<>(hx, hy, hz));
-        auto const boxShape = std::make_shared<chrono::ChBoxShape>(box);
-        body->AddAsset(boxShape);
-      }
-    }
-    mphysicalSystem.Add(body);
-    linkElement = linkElement->GetNextElement("link");
-  }
-
-  sdf::ElementPtr jointElement = modelElement->GetElement("joint");
-  while (jointElement)
-  {
-    const auto name = jointElement->Get<std::string>("name");
-
-    const auto parentName = jointElement->GetElement("parent")->Get<std::string>();
-    const auto parent = mphysicalSystem.SearchBody(parentName.c_str());
-
-    const auto childName = jointElement->GetElement("child")->Get<std::string>();
-    const auto child = mphysicalSystem.SearchBody(childName.c_str());
-
-    auto rotmotor = std::make_shared<ChLinkMotorRotationAngle>();
-    // Connect the rotor and the stator and add the motor to the system:
-    rotmotor->Initialize(child,                // body A (slave)
-        parent,               // body B (master)
-        ChFrame<>(parent->GetPos())  // motor frame, in abs. coords
-        );
-    rotmotor->SetNameString(name);
-    mphysicalSystem.Add(rotmotor);
-
-    jointElement = jointElement->GetNextElement("joint");
-  }
-
+  loadSDF(mphysicalSystem, sdfPath);
   //======================================================================
 
   // Use this function for adding a ChIrrNodeAsset to all items
